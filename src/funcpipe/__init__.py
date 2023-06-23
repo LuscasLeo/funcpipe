@@ -1,9 +1,11 @@
+from dataclasses import dataclass, field
 from typing import (
     Any,
     Callable,
     Generic,
     NoReturn,
     Optional,
+    Tuple,
     TypeVar,
 )
 
@@ -12,26 +14,44 @@ def rraise(_: Any) -> NoReturn:
     raise NotImplementedError
 
 
-T = TypeVar("T")
 INITIAL_T = TypeVar("INITIAL_T")
 FINAL_T = TypeVar("FINAL_T")
 
-
-class Pipe(Generic[INITIAL_T, T]):
-    def __init__(
-        self, transform: Callable[[INITIAL_T], T], parent: Optional["Pipe"] = None
-    ) -> None:
-        self.__transform = transform
-        self.__parent = parent
-
-    def __rshift__(self, other: Callable[[T], FINAL_T]) -> "Pipe[INITIAL_T, FINAL_T]":
-        return Pipe(transform=lambda value: other(self(value)), parent=self)
-
-    def __call__(self, value: INITIAL_T) -> T:
-        if self.__parent is None:
-            return self.__transform(value)
-        else:
-            return self.__parent(self.__transform(value))
+NEW_FINAL_T = TypeVar("NEW_FINAL_T")
 
 
-__all__ = ["Pipe"]
+class Pipe(Generic[INITIAL_T, FINAL_T]):
+    def __init__(self, func: Callable[[INITIAL_T], FINAL_T]) -> None:
+        self.func = func
+
+    def __rshift__(
+        self, other: Callable[[FINAL_T], NEW_FINAL_T]
+    ) -> "Pipe[INITIAL_T, NEW_FINAL_T]":
+        return Pipe(lambda value: other(self.func(value)))
+
+    def __call__(self, value: INITIAL_T) -> FINAL_T:
+        return self.func(value)
+
+    def pipe(
+        self, other: Callable[[FINAL_T], NEW_FINAL_T]
+    ) -> "Pipe[INITIAL_T, NEW_FINAL_T]":
+        return Pipe(lambda value: other(self.func(value)))
+
+
+T = TypeVar("T")
+J = TypeVar("J")
+PREDICATE = Callable[[T], bool]
+TRANSFORMER = Callable[[T], J]
+
+
+def pattern_match(
+    cases: Tuple[Tuple[PREDICATE[T], TRANSFORMER[T, J]], ...],
+) -> Pipe[T, J]:
+    @Pipe
+    def _pattern_match(value: T) -> J:
+        for case, transform in cases:
+            if case(value):
+                return transform(value)
+        raise ValueError("No case matched")
+
+    return _pattern_match
