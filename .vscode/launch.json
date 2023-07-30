@@ -12,6 +12,20 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
+                "PYTEST_ADDOPTS": "--no-cov"
+            },
+            "purpose": [
+                "debug-test"
+            ]
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
             },
             "purpose": [
