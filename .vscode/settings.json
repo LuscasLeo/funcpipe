@@ -4,6 +4,10 @@
         "./src"
     ],
     "python.linting.mypyEnabled": true,
+    "python.linting.mypyArgs": [
+        "--config-file",
+        "pyproject.toml"
+    ],
     "python.linting.enabled": true,
     "python.testing.pytestArgs": [
         "tests"

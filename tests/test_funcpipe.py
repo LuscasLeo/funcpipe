@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+from typing import Any, Generator
 from funcpipe import Pipe, pattern_match
 import pytest
 
@@ -12,7 +14,7 @@ def test_pipe() -> None:
     assert (sum_one.pipe(sum_one).pipe(sum_one))(1) == 4
 
 
-def test_pattern_matching():
+def test_pattern_matching() -> None:
 
     def is_even(x: int) -> bool:
         return x % 2 == 0
@@ -36,7 +38,7 @@ def test_pattern_matching():
     def quadruple(x: int) -> int:
         return x * 4
     
-    pattern = pattern_match(
+    pattern: Pipe[int, int] = pattern_match(
         (
             (is_even, double),
             (is_odd, triple),
@@ -49,7 +51,7 @@ def test_pattern_matching():
     assert pattern(2) == 4
     assert pattern(0) == 0
 
-def test_no_case_for_pattern_match():
+def test_no_case_for_pattern_match() -> None:
     def is_even(x: int) -> bool:
         return x % 2 == 0
     
@@ -80,7 +82,7 @@ def test_no_case_for_pattern_match():
     with pytest.raises(ValueError):
         pattern(1)
 
-def test_pattern_matching_return_default():
+def test_pattern_matching_return_default() -> None:
     def is_even(x: int) -> bool:
         return x % 2 == 0
     
@@ -102,7 +104,7 @@ def test_pattern_matching_return_default():
     def quadruple(x: int) -> int:
         return x * 4
     
-    pattern = pattern_match(
+    pattern: Pipe[int, int] = pattern_match(
         (
             (is_even, double),
         ),
@@ -112,3 +114,17 @@ def test_pattern_matching_return_default():
     assert pattern(1) == 1
     assert pattern(2) == 4
     assert pattern(0) == 0
+
+
+
+def test_pipe_using_generator() -> None:
+
+    @Pipe
+    def sum_one(x: int) -> Generator[int, Any, None]:
+        yield x + 1
+ 
+    a = sum_one
+
+    assert sum_one(1) == 2
+    assert (sum_one >> sum_one >> sum_one)(1) == 4
+    assert (sum_one.pipe(sum_one).pipe(sum_one))(1) == 4
