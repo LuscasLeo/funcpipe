@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "funcpipe"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = ["Lucas Silva <lucas76leonardo@gmail.com>"]
 readme = "README.md"
